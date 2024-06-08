@@ -1,0 +1,27 @@
+.DS_Store
+__pycache__/
+
+.venv
+/venv
+
+/currency/*.json
+
+# Executables
+*.exe
+*.out
+*.app
+*.i*86
+*.x86_64
+*.hex
+
+report/
+report.info
+.vscode
+
+file
+file.pub
+
+konspect.py
+main.py
+*.txt
+.idea/
