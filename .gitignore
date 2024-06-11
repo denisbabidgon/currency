@@ -21,7 +21,7 @@ report.info
 file
 file.pub
 
-konspect.py
-main.py
+konspekt*
 *.txt
 .idea/
+mach_squese.py
