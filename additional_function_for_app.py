@@ -5,6 +5,18 @@ import json
 from datetime import datetime
 
 
+def get_right_path(folder_name: str = 'currency') -> str:
+    """Функция призвана сформировать абсолютный путь до папки,
+    которая указана в качестве аргумента в зависимости от ОС, на которой выполняется запуск"""
+    path_to_current_file = os.path.abspath(__file__)
+    seperator = '/' if os.name == 'posix' else '\\'
+    path_list = path_to_current_file.split(seperator)
+
+    path_list[-1] = folder_name
+
+    return seperator.join(path_list) + seperator
+
+
 def check_correctly_date(user_date_string: str) -> bool:
     try:
         datetime.strptime(user_date_string, '%d.%m.%Y')
@@ -25,7 +37,7 @@ def save_data_about_currency(user_data: datetime) -> bool:
         return False
     else:
         file_name = user_data.strftime(f'%d_%m_%Y')
-        with open(f"currency/{file_name}.json", 'w', encoding='utf-8') as file:
+        with open(f"{get_right_path()}{file_name}.json", 'w', encoding='utf-8') as file:
             json.dump(response.json(), file, indent=4, ensure_ascii=False)
     return True
 
