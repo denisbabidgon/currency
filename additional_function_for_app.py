@@ -9,7 +9,7 @@ def get_right_path(folder_name: str = 'currency') -> str:
     """Функция призвана сформировать абсолютный путь до папки,
     которая указана в качестве аргумента в зависимости от ОС, на которой выполняется запуск"""
     path_to_current_file = os.path.abspath(__file__)
-    seperator = '/' if os.name == 'posix' else '\\'
+    seperator = '/' if os.name == 'posix' else r'\\'
     path_list = path_to_current_file.split(seperator)
 
     path_list[-1] = folder_name
@@ -40,6 +40,42 @@ def save_data_about_currency(user_data: datetime) -> bool:
         with open(f"{get_right_path()}{file_name}.json", 'w', encoding='utf-8') as file:
             json.dump(response.json(), file, indent=4, ensure_ascii=False)
     return True
+
+
+def get_info_about_response(data_key: str) -> dict:
+    """
+    на вход мы получаем строку в формате %d_%m_%Y и эта строка - гарантированно валидная
+    """
+    with open(f'{get_right_path()}completed_response.json', 'r', encoding='utf-8') as file:
+        completed_response: dict = json.load(file)
+
+    result_dict: dict = {
+        'flag': '',
+        'all_data': completed_response,
+    }
+
+    if data_key in completed_response:
+        flag = completed_response[data_key]
+        if flag:
+            result_dict['flag'] = 'Данные найдены!'
+        else:
+            result_dict['flag'] = 'По дате на бирже нету данных!'
+    else:
+        result_dict['flag'] = 'Требуется выполнить запрос!'
+
+    return result_dict
+
+
+def save_all_responses(all_data: dict) -> None:
+    """
+    completed_response.json нужен для того, чтобы хранить результаты по запросам пользователей.
+    данные храняться парами: str: bool
+    если bool = True - запрос уже был когда-то выполнен, и прошел успешно
+    если bool = False - запрос уже был когда-то выполнен, по данной дате не было получено никаких данных
+    """
+    with open(f'{get_right_path()}completed_response.json', 'w', encoding='utf-8') as file:
+        json.dump(all_data, file, indent=4, ensure_ascii=False)
+
 
 
 # 1) пользователь может ввести не правильную дату
