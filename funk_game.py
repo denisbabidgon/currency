@@ -1,4 +1,5 @@
 import requests
+import os
 
 import json
 from datetime import datetime
@@ -10,7 +11,16 @@ def check_currrency_data(user_date_string: str) -> bool:
     except ValueError:
         return False
 
+def getrightpath(foldername: str = 'currency', __file=None) -> str:
+    """Функция призвана сформировать абсолютный путь до папки,
+    которая указана в качестве аргумента в зависимости от ОС, на которой выполняется запуск"""
+    path_to_current_file = os.path.abspath(__file)
+    seperator = '/' if os.name == 'posix' else '\\'
+    path_list = path_to_current_file.split(seperator)
 
+    path_list[-1] = foldername
+
+    return seperator.join(path_list) + seperator
 
 def save_data_about_currency(user_input: str) -> bool:
     """Выдает курс валют на данное число которое ввел пользователь, если курса на число нет то ничего не произойдет"""
