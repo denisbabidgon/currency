@@ -77,6 +77,18 @@ def save_all_responses(all_data: dict) -> None:
         json.dump(all_data, file, indent=4, ensure_ascii=False)
 
 
+def get_answer_about_next_response(user_date: datetime, key: str) -> str:
+    info_response: dict = get_info_about_response(key)
+    completed_response: dict = info_response['all_data']
+
+    if info_response['flag'] == 'Требуется выполнить запрос!':
+        flag_response: bool = save_data_about_currency(user_date)
+        completed_response[key] = flag_response
+
+        save_all_responses(completed_response)
+
+    return info_response['flag']
+
 
 # 1) пользователь может ввести не правильную дату
 # 1.1) несуществующий фактически в календаре день
