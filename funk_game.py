@@ -38,3 +38,7 @@ def save_data_about_currency(user_input: str) -> bool:
             json.dump(response.json(), file, indent=4, ensure_ascii=False)
     return True
 
+
+
+
+
