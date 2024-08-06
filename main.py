@@ -2,9 +2,9 @@ import requests
 
 import json
 from datetime import datetime
-#
-# from additional_function_for_app import check_correctly_date, get_answer_about_next_response
-# from additional_function_for_app import get_right_path
+
+from additional_function_for_app import check_correctly_date, get_answer_about_next_response
+from additional_function_for_app import get_right_path
 #
 # user_date_string = input('Введи дату: ')
 #
@@ -27,27 +27,72 @@ from datetime import datetime
 # библиотека для "объединения" бэка и фронта
 # flask, fastapi, django
 
-from flask import Flask, render_template
+from flask import Flask, render_template, request, redirect, url_for
 
 
 app = Flask(__name__)
 
+import time
 
 @app.route('/')
 def index():
     data = {
-        'title': 'Это моя первая страница',
-        'header': 'тут ты узнаешь курс валют на сегодня'
+        'title': 'Курс валют',
+        'first_header': 'Курс валют',
+        'second_header': 'Тут ты узнаешь курс валют на сегодня',
     }
+
     return render_template('index.html', **data)
 
-@app.route('/asd')
-def asd():
+
+@app.route('/submit', methods=['POST'])
+def submit():
+    day = request.form.get('day')
+    month = request.form.get('month')
+    year = request.form.get('year')
+
+    if check_correctly_date(f'{day}.{month}.{year}'):
+        # переадресовать пользователя на нормальную страницу
+        print('а теперь я тут')
+        return redirect(url_for('success'))
+
+    else:
+        print('я тут')
+        return redirect(url_for('error'))
+
+
+@app.route('/error')
+def error():
     data = {
-        'title': 'А это моя вторая страница',
-        'header': 'тут ты узнаешь курс валют любой интересующий тебя день!'
+        'title': 'Курс валют',
+        'first_header': 'Ошибка'
     }
-    return render_template('index.html', **data)
+
+    return render_template('error.html', **data)
+
+
+@app.route('/success')
+def success():
+    data = {
+        'title': 'Курс валют',
+        'first_header': 'Успешно!'
+    }
+
+    return render_template('success.html', **data)
+
+
+@app.route('/current_day')
+def current_day():
+    data = {
+        'title': 'Курс валют',
+        'first_header': 'Курс валют на 30 мая 2024 года',
+    }
+    with open('currency/30_05_2024.json', 'r', encoding='utf-8') as file:
+        curr: dict = json.load(file)
+
+    data['currency'] = curr['Valute']
+
+    return render_template('current_day.html', **data)
 
 
 if __name__ == '__main__':
