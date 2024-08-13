@@ -54,9 +54,10 @@ def get_right_path(folder_name: str = 'currency') -> str:
 def get_answer_about_next_response(user_date: datetime, key: str) -> str:
     info_response: dict = get_info_about_response(key)
     completed_response: dict = info_response['all_data']
+    datetime_str = user_date.strftime("%d.%m.%Y")
 
     if info_response['flag'] == 'Требуется выполнить запрос!':
-        flag_response: bool = save_data_about_currency(user_date)
+        flag_response: bool = save_data_about_currency(datetime_str)
         completed_response[key] = flag_response
 
         save_all_responses(completed_response)
