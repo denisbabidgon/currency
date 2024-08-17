@@ -17,15 +17,45 @@ def get_right_path(folder_name: str = 'currency') -> str:
     return seperator.join(path_list) + seperator
 
 
-def check_correctly_date(user_date_string: str) -> bool:
+def check_correctly_date(user_date_string: str) -> dict:
+    result = {
+        'user_date_string': user_date_string,
+        'flag': None,
+        'response': None,
+    }
+
     try:
-        datetime.strptime(user_date_string, '%d.%m.%Y')
-        return True
+        date_time_obj = datetime.strptime(user_date_string, '%d.%m.%Y')
+        if date_time_obj > datetime.now():
+            result['flag'] = 'Ты пытаешься получить данные по дате в будущем!'
+            return result
+
     except ValueError:
-        return False
+        result['flag'] = 'Ты пытаешься ввести несуществующую дату'
+        return result
+
+    info_abot_all_resp = get_info_about_response(file_name := date_time_obj.strftime('%d_%m_%Y'))
+    if info_abot_all_resp['flag'] == 'Данные найдены!':
+        with open(f'{get_right_path()}{file_name}.json', 'r', encoding='utf-8') as file:
+            data = json.load(file)
+            result['flag'] = 'Данные найдены!'
+            result['response'] = data
+
+        # открыть файл
+    elif info_abot_all_resp['flag'] == 'По дате на бирже нету данных!':
+        result['flag'] = 'По дате на бирже нету данных!'
+    else:
+        resp_flag, resp_result = save_data_about_currency(date_time_obj)
+        if resp_flag is False:
+            result['flag'] = 'По дате на бирже нету данных!'
+        else:
+            result['flag'] = 'Данные найдены!'
+            result['response'] = resp_result
+
+    return result
 
 
-def save_data_about_currency(user_data: datetime) -> bool:
+def save_data_about_currency(user_data: datetime) -> tuple:
     """Документ строка"""
     # вставить в нужные места дату которые ввел пользователь.(что бы это работало)
     url = f'https://www.cbr-xml-daily.ru/archive/{user_data.strftime("%Y/%m/%d")}/daily_json.js'
@@ -34,12 +64,12 @@ def save_data_about_currency(user_data: datetime) -> bool:
     status = response.status_code
 
     if status != 200:
-        return False
+        return False, None
     else:
         file_name = user_data.strftime(f'%d_%m_%Y')
         with open(f"{get_right_path()}{file_name}.json", 'w', encoding='utf-8') as file:
             json.dump(response.json(), file, indent=4, ensure_ascii=False)
-    return True
+    return True, response.json()
 
 
 def get_info_about_response(data_key: str) -> dict:
@@ -77,17 +107,17 @@ def save_all_responses(all_data: dict) -> None:
         json.dump(all_data, file, indent=4, ensure_ascii=False)
 
 
-def get_answer_about_next_response(user_date: datetime, key: str) -> str:
-    info_response: dict = get_info_about_response(key)
-    completed_response: dict = info_response['all_data']
-
-    if info_response['flag'] == 'Требуется выполнить запрос!':
-        flag_response: bool = save_data_about_currency(user_date)
-        completed_response[key] = flag_response
-
-        save_all_responses(completed_response)
-
-    return info_response['flag']
+# def get_answer_about_next_response(user_date: datetime, key: str) -> str:
+#     info_response: dict = get_info_about_response(key)
+#     completed_response: dict = info_response['all_data']
+#
+#     if info_response['flag'] == 'Требуется выполнить запрос!':
+#         flag_response: bool = save_data_about_currency(user_date)
+#         completed_response[key] = flag_response
+#
+#         save_all_responses(completed_response)
+#
+#     return info_response['flag']
 
 
 # 1) пользователь может ввести не правильную дату

@@ -3,7 +3,7 @@ import requests
 import json
 from datetime import datetime
 
-from additional_function_for_app import check_correctly_date, get_answer_about_next_response
+from additional_function_for_app import check_correctly_date
 from additional_function_for_app import get_right_path
 #
 # user_date_string = input('Введи дату: ')
@@ -32,7 +32,6 @@ from flask import Flask, render_template, request, redirect, url_for
 
 app = Flask(__name__)
 
-import time
 
 @app.route('/')
 def index():
@@ -51,13 +50,21 @@ def submit():
     month = request.form.get('month')
     year = request.form.get('year')
 
-    if check_correctly_date(f'{day}.{month}.{year}'):
-        # переадресовать пользователя на нормальную страницу
-        print('а теперь я тут')
-        return redirect(url_for('success'))
+    result = check_correctly_date(date_string := f'{day}.{month}.{year}')
 
-    else:
-        print('я тут')
+    if result['flag'] == 'Данные найдены!':
+        return redirect(url_for('success', data=result['response']))
+
+    elif result['flag'] == 'Ты пытаешься ввести несуществующую дату':
+        print('Ты пытаешься ввести несуществующую дату')
+        return redirect(url_for('error'))
+
+    elif result['flag'] == 'Ты пытаешься получить данные по дате в будущем!':
+        print('Ты пытаешься получить данные по дате в будущем!')
+        return redirect(url_for('error'))
+
+    elif result['flag'] == 'По дате на бирже нету данных!':
+        print('По дате на бирже нету данных!')
         return redirect(url_for('error'))
 
 
@@ -75,8 +82,11 @@ def error():
 def success():
     data = {
         'title': 'Курс валют',
-        'first_header': 'Успешно!'
+        'first_header': 'Успешно!',
+        'currency': json.loads(request.args.get('data').replace('+', '')),
     }
+
+
 
     return render_template('success.html', **data)
 

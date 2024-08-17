@@ -20,8 +20,30 @@
             
             <div class="row" style="padding-top: 50px;">
                 <div class="col">
-                    <h4>{{ second_header }}</h4>
-                    <h3>Ты !</h3>
+                    <table class="table table-striped">
+                        <thead>
+                            <tr>
+                                <th scope="col">NumCode</th>
+                                <th scope="col">CharCode</th>
+                                <th scope="col">Name</th>
+                                <th scope="col">Nominal</th>
+                                <th scope="col">Value</th>
+                            </tr>
+                        </thead>
+                        <tbody>
+                            {% for val in currency.values() %}
+                                <tr>
+                                    <td>{{ val.NumCode }}</td>
+                                    <td>{{ val.CharCode }}</td>
+                                    <td>{{ val.Name }}</td>
+                                    <td>{{ val.Nominal }}</td>
+                                    <td>{{ val.Value }}</td>
+                                </tr>
+                            {% endfor %}
+
+                        </tbody>
+                    </table>
+
                 </div>
             </div>
         </div>
