@@ -1,8 +1,10 @@
+from textwrap import indent
+
 import requests
 
 import os
 import json
-from datetime import datetime
+from datetime import datetime, timedelta
 
 
 def get_right_path(folder_name: str = 'currency') -> str:
@@ -19,14 +21,20 @@ def get_right_path(folder_name: str = 'currency') -> str:
 
 def check_correctly_date(user_date_string: str) -> bool:
     try:
-        datetime.strptime(user_date_string, '%d.%m.%Y')
+        dt_obj = datetime.strptime(user_date_string, '%d.%m.%Y')
+        if dt_obj >= datetime.today():
+            return False
         return True
     except ValueError:
         return False
 
 
 def save_data_about_currency(user_data: datetime) -> bool:
-    """Документ строка"""
+    """
+    1) Отправляется запрос и если запрос был НЕ успешен - то возвращается False
+    а иначе:
+        сохраняем полученные данные И возвращаем True
+    """
     # вставить в нужные места дату которые ввел пользователь.(что бы это работало)
     url = f'https://www.cbr-xml-daily.ru/archive/{user_data.strftime("%Y/%m/%d")}/daily_json.js'
 
@@ -78,6 +86,9 @@ def save_all_responses(all_data: dict) -> None:
 
 
 def get_answer_about_next_response(user_date: datetime, key: str) -> str:
+    """
+    1) вызываем функцию, которая открывает completed_response.json и
+    """
     info_response: dict = get_info_about_response(key)
     completed_response: dict = info_response['all_data']
 
@@ -88,6 +99,45 @@ def get_answer_about_next_response(user_date: datetime, key: str) -> str:
         save_all_responses(completed_response)
 
     return info_response['flag']
+
+
+def add_new_key_value(key: str, value: bool) -> None:
+    # добавляем новую пару
+    with open('currency/completed_response.json', 'r', encoding='utf-8') as file:
+        all_data = json.load(file)
+
+    all_data[key] = value
+
+    with open('currency/completed_response.json', 'w', encoding='utf-8') as file:
+        json.dump(all_data, file, indent=4, ensure_ascii=False)
+
+
+def get_left_and_right_dates(data: str) -> dict:
+    # data - это строка типа %d_%m_%Y
+    start_dt_obj = datetime.strptime(data, '%d_%m_%Y')
+
+    final_dict = {
+        'left': None,
+        'right': None,
+    }
+
+    count = 15
+    for j in ['left', 'right']:
+        for i in range(1, count + 1):
+            if j == 'left':
+                new_date = start_dt_obj - timedelta(days=i)
+            else:
+                new_date = start_dt_obj + timedelta(days=i)
+
+            flag = save_data_about_currency(new_date)
+            if flag:
+                final_dict[j] = new_date.strftime('%d.%m.%Y')
+                break
+
+    return final_dict
+
+
+# print(get_left_and_right_dates('31_08_2024'))
 
 
 # 1) пользователь может ввести не правильную дату
