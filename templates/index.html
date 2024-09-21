@@ -10,10 +10,14 @@
     <title>{{ title }}</title>
 </head>
 <div class="container" style="padding-top: 150px;">
+    {% extends "base.html" %}
+
+    {% block content %}
         <div class="container text-center">
             <div class="row">
                 <div class="col">
-                    <h2>{{ first_header }}</h2>
+                    <h1>{{ zagolovok }}</h1>
+                    <h2>{{ header }}</h2>
                 </div>
             </div>
 
@@ -88,3 +92,4 @@
 </div>
 
 </html>
+{% endblock %}

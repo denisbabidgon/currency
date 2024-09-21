@@ -49,7 +49,8 @@ from funk_game import check_currrency_data, get_answer_about_next_response,get_r
 #
 # user_date_string = input('Введи дату: ')
 #
-# if check_currrency_data(user_date_string):
+# if check_currrency_data(user_date_string)
+# надо продолжить и понять 
 #     user_date: datetime = datetime.strptime(user_date_string, '%d.%m.%Y')
 #     key: str = user_date.strftime('%d_%m_%Y')
 #
@@ -66,10 +67,10 @@ from funk_game import check_currrency_data, get_answer_about_next_response,get_r
 
 
 
-
+import os
 from flask import Flask, render_template, request, redirect, url_for
 import json
-from funk_game import get_right_path
+from funk_game import (get_right_path, check_currrency_data, save_data_about_currency, get_info_about_response, add_new_key_value, left_and_right_dates)
 
 app = Flask(__name__)
 
@@ -80,7 +81,8 @@ def index():
     data = {
         'title': 'Это моя первая страница',
         'header': 'тут ты узнаешь курс валют любой интересующий тебя день!',
-        'currency': currency_data["Valute"]
+        'currency': currency_data["Valute"],
+        "zagolovok": 'Курс валют'
     }
     return render_template('index.html',  **data)
 
@@ -115,11 +117,14 @@ def submit():
     day = request.form.get('day')
     month = request.form.get('month')
     year = request.form.get('year')
-    print(day, month, year)
+    date = request.form.get('date')
+
+
+    if date is not None:
+        return redirect(url_for('success', data=f'{date}'))
     if check_currrency_data(f'{day}.{month}.{year}'):
         # переадресовать пользователя на нормальную страницу
-        print('а теперь я тут')
-        return redirect(url_for('success', day=day, month=month, year=year))
+        return redirect(url_for('success', data=f'{day}.{month}.{year}'))
 
     else:
         print('я тут')
@@ -136,26 +141,67 @@ def error():
 @app.route('/success')
 def success():
     data = {
-        'title': 'Курс валют',
-        'first_header': 'Успешно!'
+    'title': 'Курс валют',
+    'first_header': 'Успешно!',
+    'left_and_right':  None
     }
 
-    day= request.args.get('day')
-    month= request.args.get('month')
-    year= request.args.get('year')
-    print(day, month, year)
-    # print(type(day))
-    #     # print(type(month))
-    #     # print(type(year))
-    with open(f'currency/{day}_{month}_{year}.json', 'r', encoding='utf-8') as file:
-        soul = json.load(file)
+    string_from_index = request.args.get('data').replace('.', '_')
+    string_from_index = datetime.strptime(string_from_index, '%d_%m_%Y').strftime('%d_%m_%Y')
 
-    return render_template('success.html', **data)
+    flag = get_info_about_response(string_from_index)
+
+    # print(flag['flag'])
+
+    if flag['flag'] == 'Данные найдены!':
+        # print('ты тут')
+        with open(f'currency/{string_from_index}.json', 'r', encoding='utf-8') as file:
+            data['currency'] = json.load(file)['Valute']
+
+        return render_template('success.html', **data)
+
+    else:
+        result_response = None
+        if flag['flag'] == 'Требуется выполнить запрос!':
+            dt_obj = datetime.strptime(string_from_index, '%d_%m_%Y')
+            dt_obj1 = dt_obj.strftime("%d.%m.%Y")
+            result_response = save_data_about_currency(dt_obj1)
+
+            # добавляем новую пару
+            add_new_key_value(string_from_index, result_response)
+
+            if result_response:
+                with open(f'currency/{string_from_index}.json', 'r', encoding='utf-8') as file:
+                    data['currency'] = json.load(file)['Valute']
+
+                return render_template('success.html', **data)
+
+        if result_response is None or result_response is False:
+            # предоставить пользователю выбор ближайшей даты слева и даты справа
+            left_and_right = left_and_right_dates(string_from_index)
+
+            data['left_and_right'] = left_and_right
+            count = 0
+            if left_and_right['left'] is not None:
+                count += 1
+            if left_and_right['right'] is not None:
+                count += 1
+
+            data['count'] = count
+
+            return render_template('selecting_the_nearest_page.html', **data)
+
+# не рабочий метод !!!!!!!!!!!!!!!!!!!!!!!
+# @app.route('/selecting_the_nearest_page')
+# def selecting_the_nearest_page():
+#     data = {
+#         'title': 'Курс валют',
+#         'first_header': 'На данную дату нет данных нажми на одну из кнопок с другими датами!'
+#     }
+#     return render_template('selecting_the_nearest_page.html', **data)
 
 if __name__ == '__main__':
     app.run(debug=True)
-
-
 
 
 

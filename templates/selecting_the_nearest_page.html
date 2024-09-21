@@ -1,0 +1,56 @@
+{% extends "base.html" %}
+
+{% block content %}
+
+        <div class="container text-center">
+            <div class="row">
+                <div class="col">
+                    <h2>{{ first_header }}</h2>
+                </div>
+            </div>
+
+            <div class="row" style="padding-top: 50px;">
+                <div class="col">
+                    <h4>{{ second_header }}</h4>
+                    <h3>На дату, которую ты выбрал нет курса валют!
+                        Ты можешь или выбрать ближайшую дату из предложенных или
+                        <a href="{{ url_for('index') }}">верниться </a>и повторить запрос!</h3>
+                </div>
+            </div>
+
+            <div class="row" style="padding-top: 50px;">
+                {% if count == 1 %}
+
+                    {% if left_and_right.left is none %}
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-primary">{{ left_and_right.right }}</button>
+                        </div>
+                    {% else %}
+                        <div class="col-12">
+                            <button type="submit" class="btn btn-primary">{{ left_and_right.left }}</button>
+                        </div>
+                    {% endif %}
+
+                {% else %}
+
+                    <div class="col-6">
+                        <form action="{{ url_for('submit') }}" method="post">
+                            <input type="hidden" name="date" value="{{ left_and_right.left }}">
+                            <button type="submit" class="btn btn-primary">{{ left_and_right.left }}</button>
+                        </form>
+                    </div>
+
+                    <div class="col-6">
+                        <form action="{{ url_for('submit') }}" method="post">
+                            <input type="hidden" name="date" value="{{ left_and_right.right }}">
+                            <button type="submit" class="btn btn-primary">{{ left_and_right.right }}</button>
+                        </form>
+                    </div>
+
+                {% endif %}
+            </div>
+
+        </div>
+
+
+{% endblock %}
