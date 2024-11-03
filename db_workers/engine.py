@@ -4,6 +4,13 @@ import os
 
 
 def connect_to_sqlite(sql_request: str, commit_flag: bool = False) -> None | tuple:
+    # db_url = f"sqlite:///" + os.getcwd()
+    # if os.name == 'posix':
+    #     db_url += '/'
+    # else:
+    #     db_url += '\\'
+    # db_url += 'data_base.db'
+
     db_url = f"sqlite:///{os.getcwd() + ('/' if os.name == 'posix' else r'\\') + 'data_base.db'}"
 
     # db_url = f"sqlite:///{os.getcwd()}" + '\\' + 'data_base.db'
